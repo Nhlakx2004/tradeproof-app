@@ -19,7 +19,7 @@ PRODUCT_CERTS = [
 # ── QR code URL ───────────────────────────────────────────
 # During demo: points to localhost so scanning in the room actually works.
 # For production: change to https://tradeproof.co.za/verify/
-QR_BASE_URL = "http://localhost:8501/verify/"
+QR_BASE_URL = "https://tradeproof.streamlit.app/verify/"
 
 
 def _qr_buf(pid):
