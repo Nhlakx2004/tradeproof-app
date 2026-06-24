@@ -1,0 +1,5 @@
+streamlit
+plotly
+qrcode[pil]
+pillow
+reportlab
