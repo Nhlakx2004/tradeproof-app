@@ -24,7 +24,7 @@ def render():
         steps = [
             ("Supplier registers","The supplier's details, certifications and ESG score are hashed and sealed on the blockchain."),
             ("Brand issues a passport","Each product batch gets a unique passport ID with a SHA-256 hash that locks its data permanently."),
-            ("A QR code is generated","TradeProof creates a unique QR code linking to localhost:8501/verify/[ID] (production: tradeproof.co.za/verify/[ID]), printed on the label."),
+            ("A QR code is generated","TradeProof creates a unique QR code linking to tradeproof.co.za/verify/, printed on the label."),
             ("Customer scans","Any phone camera opens the verification page directly — no app needed, takes about 3 seconds."),
             ("Blockchain hash verified","The record's hash is checked in under a second. Tampered or fake codes show an UNVERIFIED warning."),
             ("Full story displayed","The customer sees the verified supplier, certifications, carbon footprint and complete journey."),
