@@ -3,3 +3,4 @@ plotly
 qrcode[pil]
 pillow
 reportlab
+supabase

@@ -3,22 +3,45 @@ import streamlit as st
 from data import get_passport, get_supplier, get_journey
 from branding import esg_color, page_header, section
 
+import streamlit as st
+from urllib.parse import unqoute
+
+# Check if arriving from a QR code scan
+params = st.query_params
+if "verify" in params:
+  pid = unqoute(params["verify"])
+  st.session_state["qr_scan_id"] = pid
+
 
 def render():
     st.markdown(page_header("Verify Product", "What a customer sees when they scan a TradeProof QR code"),
                 unsafe_allow_html=True)
+    
+    # Auto-load from QR scan if arriving via URL
+    preselect = st.session_state.get("qr_scan_id", None)
 
     pas = st.session_state.passports
     if not pas:
         st.warning("No passports to verify yet — create one in Product Passports first.")
         return
 
-    opts   = {f"{p['id']}  —  {p['product_name']}": p["id"] for p in pas}
-    choice = st.selectbox("Select a product to simulate a scan", list(opts.keys()))
+    opts   = {f"{p['id']} - {p['product_name']}": p["id"] for p in pas}
+
+    #If arriving from QR, find the matching product
+    default_index = 0
+    if preselect:
+        for i, pid in enumerate(opts.values()):
+            if pid == preselect:
+                default_index = i
+                break
+                        
+    choice = st.selectbox("Select a product to simulate a scan",
+                          list(opts.keys()),
+                          index=default_index)
     st.markdown("---")
     _verify_view(opts[choice])
-
-    # ── How it works (collapsed by default) ───────────────
+    
+        # ── How it works (collapsed by default) ───────────────
     st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
     with st.expander("How does QR scanning actually work?"):
         steps = [

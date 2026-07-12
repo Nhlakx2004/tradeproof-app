@@ -1,13 +1,37 @@
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import streamlit as st
+from branding import LOGO_SIDEBAR_SRC
+
 """
 TradeProof
 Blockchain traceability for South African supply chains.
 Johannesburg, South Africa
 """
-import os, sys
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import streamlit as st
-from branding import LOGO_SIDEBAR_SRC
+def check_login():
+    if "authenticated" not in st.session_state:
+        st.session_state.authenticated = False
+
+    if not st.session_state.authenticated:
+        st.markdown("## TradeProof")
+        st.markdown("*Blockchain traceability for South African supply chains.*")
+        st.divider()
+        username = st.text_input("username")
+        password = st.text_input("password", type="password")
+        if st.button("Login"):
+            passwords = st.secrets.get("passwords", {})
+            if username in passwords and password == passwords[username]:
+                st.session_state.authenticated = True
+                st.session_state.current_user = username
+                st.rerun()
+            else:
+                st.error("Invalid username or password")
+                st.error("Incorrect username or password")
+
+check_login()
 
 st.set_page_config(
     page_title="TradeProof",
@@ -31,8 +55,15 @@ html, body, [class*="css"] {
 [data-testid="stSidebar"] {
   background: #34383C !important;
   border-right: none !important;
+  min-width: 280px !important;
+  max-width: 280px !important;
+  transform: none !important;
+  visibility: visible !important;
 }
 [data-testid="stSidebar"] > div:first-child { padding: 0 !important; }
+[data-testid="collapsedControl"] {
+            display: none !important;
+}
 
 .sb-logo {
   background: #FFFFFF;
