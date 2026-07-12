@@ -30,9 +30,11 @@ def check_login():
             else:
                 st.error("Invalid username or password")
                 st.error("Incorrect username or password")
+                st.stop()
 
 check_login()
 
+# - ONLY after login does anything below run -
 st.set_page_config(
     page_title="TradeProof",
     layout="wide",
