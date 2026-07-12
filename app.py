@@ -10,11 +10,10 @@ TradeProof
 Blockchain traceability for South African supply chains.
 Johannesburg, South Africa
 """
-
+# ── Login check Must come before set_page_config and everything else ──
 def check_login():
     if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
-
     if not st.session_state.authenticated:
         st.markdown("## TradeProof")
         st.markdown("*Blockchain traceability for South African supply chains.*")
@@ -28,13 +27,12 @@ def check_login():
                 st.session_state.current_user = username
                 st.rerun()
             else:
-                st.error("Invalid username or password")
                 st.error("Incorrect username or password")
                 st.stop()
 
 check_login()
 
-# - ONLY after login does anything below run -
+# ── ONLY after login does anything below run ──
 st.set_page_config(
     page_title="TradeProof",
     layout="wide",
