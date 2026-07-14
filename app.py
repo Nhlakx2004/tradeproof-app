@@ -7,7 +7,7 @@ from branding import LOGO_SIDEBAR_SRC
 st.set_page_config(
     page_title="TradeProof",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # ── Public QR verification renderer ───────────────────
