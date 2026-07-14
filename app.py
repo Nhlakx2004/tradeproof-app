@@ -1,25 +1,148 @@
-import os
-import sys
+import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
 import streamlit as st
 from branding import LOGO_SIDEBAR_SRC
 
-"""
-TradeProof
-Blockchain traceability for South African supply chains.
-Johannesburg, South Africa
-"""
-# ── Login check Must come before set_page_config and everything else ──
+# ── Must be first Streamlit call ──────────────────────
+st.set_page_config(
+    page_title="TradeProof",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+# ── Public QR verification renderer ───────────────────
+def _render_public_verify(pid):
+    from data import get_passport, get_supplier, get_journey
+    from branding import esg_color
+    import base64
+
+    try:
+        logo_b64 = base64.b64encode(open("logo.png","rb").read()).decode()
+        st.markdown(f'<div style="text-align:center;padding:16px 0 6px;"><img src="data:image/png;base64,{logo_b64}" width="100"/></div>', unsafe_allow_html=True)
+    except Exception:
+        pass
+
+    if not pid:
+        st.error("Invalid QR code — no product ID found.")
+        return
+
+    pp = get_passport(pid)
+    if not pp:
+        st.markdown("""
+        <div style="background:#FDEAE3;border:2px solid #F07A5A;border-radius:14px;
+                    padding:30px;text-align:center;margin:20px 0;">
+          <div style="font-size:36px;">⚠️</div>
+          <div style="font-size:22px;font-weight:700;color:#C75B3D;margin-top:8px;">
+            Product Not Verified
+          </div>
+          <div style="font-size:13px;color:#7D4429;margin-top:8px;">
+            This product could not be authenticated. Do not consume if suspicious.
+          </div>
+        </div>""", unsafe_allow_html=True)
+        return
+
+    sup     = get_supplier(pp["supplier_id"])
+    journey = get_journey(pid)
+
+    st.markdown(f"""
+    <div style="background:#1B5E35;border-radius:14px;padding:28px;
+                text-align:center;margin:10px 0 20px;">
+      <div style="font-size:40px;">✅</div>
+      <div style="font-size:24px;font-weight:700;color:#fff;margin:8px 0 6px;">
+        Authenticity Verified
+      </div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.75);margin-bottom:12px;">
+        Registered and sealed on the TradeProof blockchain
+      </div>
+      <div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:8px 14px;
+                  display:inline-block;font-family:monospace;font-size:10px;color:#BCE6CC;">
+        {pp["hash"][:48]}…
+      </div>
+    </div>""", unsafe_allow_html=True)
+
+    st.markdown("### Product Details")
+    c1, c2 = st.columns(2)
+    c1.metric("Product",    pp["product_name"])
+    c1.metric("Origin",     pp["origin"])
+    c1.metric("Batch",      pp["batch"])
+    c2.metric("Carbon",     f"{pp['carbon_kg']} kg CO₂e")
+    c2.metric("Manufactured", pp["manufacture_date"])
+    if pp.get("certifications"):
+        st.markdown("**Certifications:** " + " · ".join(f"`{c}`" for c in pp["certifications"]))
+
+    if sup:
+        st.markdown("---")
+        ec = esg_color(sup["esg_score"])
+        st.markdown(f"""
+        <div style="background:#F5FAF7;border:1px solid #E6EEE9;border-radius:10px;padding:16px 20px;">
+          <div style="font-size:17px;font-weight:700;color:#20302A;">{sup["name"]}</div>
+          <div style="font-size:13px;color:#7C8B80;margin:4px 0 10px;">
+            {sup["location"]} · {sup["category"]}
+          </div>
+          <div style="display:flex;gap:24px;flex-wrap:wrap;">
+            <div>
+              <div style="font-size:10px;color:#7C8B80;">ESG SCORE</div>
+              <div style="font-size:22px;font-weight:700;color:{ec};">{sup["esg_score"]}/100</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:#7C8B80;">STATUS</div>
+              <div style="font-size:14px;font-weight:700;color:#1B5E35;">{sup["status"]}</div>
+            </div>
+          </div>
+          {('<div style="margin-top:10px;font-size:12px;"><b>Certifications:</b> ' + " · ".join(sup["certifications"]) + "</div>") if sup.get("certifications") else ""}
+        </div>""", unsafe_allow_html=True)
+
+    if journey and journey.get("milestones"):
+        st.markdown("---")
+        st.markdown("### Product Journey")
+        ms = journey["milestones"]
+        for i, m in enumerate(ms):
+            is_last = i == len(ms) - 1
+            st.markdown(f"""
+            <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:2px;">
+              <div style="flex-shrink:0;width:32px;height:32px;border-radius:50%;
+                          background:#1B5E35;display:flex;align-items:center;
+                          justify-content:center;font-size:13px;font-weight:700;color:#fff;">
+                {m["stage"][0].upper()}
+              </div>
+              <div style="padding-top:6px;">
+                <div style="font-weight:700;color:#20302A;font-size:13px;">{m["stage"]}</div>
+                <div style="font-size:11px;color:#aab8b0;">{m["location"]} · {m["ts"]}</div>
+              </div>
+            </div>
+            {"<div style='width:2px;height:12px;background:#E6EEE9;margin-left:15px;'></div>" if not is_last else ""}
+            """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown("""
+    <div style="text-align:center;font-size:11px;color:#aab8b0;padding:8px 0;">
+      Verified by <b style="color:#1B5E35;">TradeProof (Pty) Ltd</b> ·
+      Blockchain traceability for South African supply chains ·
+      <a href="https://tradeproof.co.za" style="color:#1B5E35;">tradeproof.co.za</a>
+    </div>""", unsafe_allow_html=True)
+
+
+# ── Login check ────────────────────────────────────────
 def check_login():
+    params = st.query_params
+    if "verify" in params:
+        return "public_verify"
+
     if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
+
     if not st.session_state.authenticated:
+        try:
+            import base64
+            logo_b64 = base64.b64encode(open("logo.png","rb").read()).decode()
+            st.markdown(f'<div style="text-align:center;padding:24px 0 12px;"><img src="data:image/png;base64,{logo_b64}" width="180"/></div>', unsafe_allow_html=True)
+        except Exception:
+            pass
         st.markdown("## TradeProof")
-        st.markdown("*Blockchain traceability for South African supply chains.*")
+        st.markdown("*Blockchain traceability for South African supply chains*")
         st.divider()
-        username = st.text_input("username")
-        password = st.text_input("password", type="password")
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
         if st.button("Login"):
             passwords = st.secrets.get("passwords", {})
             if username in passwords and password == passwords[username]:
@@ -27,17 +150,21 @@ def check_login():
                 st.session_state.current_user = username
                 st.rerun()
             else:
-                st.error("Incorrect username or password")
-                st.stop()
+                st.error("Incorrect username or password.")
+        st.stop()
 
-check_login()
+    return "authenticated"
 
-# ── ONLY after login does anything below run ──
-st.set_page_config(
-    page_title="TradeProof",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+
+auth_status = check_login()
+
+# ── Public verify — runs before anything else ──────────
+if auth_status == "public_verify":
+    from data import init_state
+    init_state()
+    pid = st.query_params.get("verify", "")
+    _render_public_verify(pid)
+    st.stop()
 
 # ── Global CSS — White / Peach / Green design system ────────────────────────
 st.markdown("""
