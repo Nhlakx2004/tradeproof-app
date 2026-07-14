@@ -4,7 +4,7 @@ from data import get_passport, get_supplier, get_journey
 from branding import esg_color, page_header, section
 
 import streamlit as st
-from urllib.parse import unqoute
+from urllib.parse import unquote
 
 # Check if arriving from a QR code scan
 params = st.query_params
