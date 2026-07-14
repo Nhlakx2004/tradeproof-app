@@ -9,6 +9,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+st.navigation(..., position="hidden")
 
 # ── Public QR verification renderer ───────────────────
 def _render_public_verify(pid):
